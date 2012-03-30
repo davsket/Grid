@@ -4,4 +4,5 @@
 		grid.grab(new Element('div.elem',{html: i}));
 	}
 	var test = new Grid();
+	$(window).addEvent('resize', test.reset);
 })()

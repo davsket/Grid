@@ -6,7 +6,7 @@ var Grid = new Class({
     //Initialization via options object
     //and fires events: 'show'
     Implements: [Options, Events],
-    Binds: ['elemClicked'],
+    Binds: ['elemClicked', 'reset'],
 
     //Options configuration
     options: {
@@ -30,12 +30,31 @@ var Grid = new Class({
     _elemsHeight: null,
 
     initialize: function(options) {
-        var top;
         this.setOptions(options);
         
         //Info gathering
         this._grid = $$(this.options.selectorGrid)[0];
         this._elems = this._grid.getElements(this.options.selectorElems);
+        
+        this.reset();
+        
+        //Events
+        this._grid.addEvent('click:relay(' + this.options.selectorElems + ')', this.elemClicked);
+    },
+
+    reset: function(){
+        var top, selected = this._grid.getElement('.'+this.options.openClass);
+        
+        this.cols = 1;
+
+        if(selected){
+            selected.removeClass(this.options.openClass);
+        }
+
+        this._elems.each(function(elem, index){
+            elem.set('style', '');
+        });
+
         if(this._elems.length){
             this._elemsWidth = this._elems[0].getSize().x;
             this._elemsHeight = this._elems[0].getSize().y;
@@ -54,14 +73,15 @@ var Grid = new Class({
         this._elems.each(function(elem){
             elem.setStyles({top: elem.retrieve('top'), left: elem.retrieve('left'), position: 'absolute'});
         });
-        
-        //Events
-        this._grid.addEvent('click:relay(' + this.options.selectorElems + ')', this.elemClicked);
+
+        if(selected){
+            // this.elemClicked({stop:function(){},target:selected});
+        }
     },
 
     elemClicked: function(evt) {
         evt.stop();
-        this._elems.removeClass('open');
+        this._elems.removeClass(this.options.openClass);
 
         this._calculate(evt.target);
         
@@ -83,13 +103,13 @@ var Grid = new Class({
             i, j, k,
             cache = {};
 
-        source.addClass('open');
+        source.addClass(this.options.openClass);
 
         openCols = Math.ceil(source.getSize().x/this._elemsWidth);
         openRows = Math.ceil(source.getSize().y/this._elemsHeight);
         si = si+openCols-1 >= this._cols ? this._cols-openCols : si; 
 
-        source.removeClass('open');
+        source.removeClass(this.options.openClass);
 
         for(i=si; i<si+openCols; i++){
             for(j=sj; j<sj+openRows; j++){
@@ -120,21 +140,22 @@ var Grid = new Class({
     _moveElements: function(target){
         var i, morph, length = this._elems.length;
         
-        function Group(elems, target){
+        function Group(elems, target, openClass){
             this._elems = elems;
             this.length = this._elems.length;
             this.target = target;
+            this.openClass = openClass;
 
             this.onComplete = function(){
                 if(length==1){
-                    this.target.addClass('open');
+                    this.target.addClass(this.openClass);
                     // this.target.morph({opacity:[0,1]});
                 }
                 length--;
             };
         };
 
-        var leGroup = new Group(this._elems.length, target);
+        var leGroup = new Group(this._elems.length, target, this.options.openClass);
 
         for(i=0; i<this._elems.length; i++){
             morph = new Fx.Morph(this._elems[i], {duration: 300, onComplete: leGroup.onComplete.bind(leGroup)});
