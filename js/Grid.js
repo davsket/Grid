@@ -101,15 +101,14 @@ var Grid = new Class({
             si = index % this._cols,
             sj = Math.floor(index / this._cols),
             i, j, k,
-            cache = {};
+            cache = {},
+            newHeight, temp;
 
         source.addClass(this.options.openClass);
 
         openCols = Math.ceil(source.getSize().x/this._elemsWidth);
         openRows = Math.ceil(source.getSize().y/this._elemsHeight);
         si = si+openCols-1 >= this._cols ? this._cols-openCols : si; 
-
-        source.removeClass(this.options.openClass);
 
         for(i=si; i<si+openCols; i++){
             for(j=sj; j<sj+openRows; j++){
@@ -135,6 +134,13 @@ var Grid = new Class({
                 this._elems[k].store('top', j*this._elemsHeight);
             }
         }
+
+        newHeight = Math.ceil(((openCols*openRows-1) + this._elems.length)/this._cols)*this._elemsHeight;
+        temp = source.retrieve('top') + source.getSize().y;
+        newHeight = newHeight > temp ? newHeight : temp;
+        this._grid.setStyle('height', newHeight);
+
+        source.removeClass(this.options.openClass);
     },
 
     _moveElements: function(target){
