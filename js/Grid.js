@@ -56,7 +56,7 @@ var Grid = new Class({
                 this._elemsHeight = this._elems[0].getSize().y + this._elems[0].getStyle('margin-bottom').toInt();
             }
             top = this._elems[0].getPosition().y;
-            while (top == this._elems[this._cols].getPosition().y) this._cols++;
+            while (this._cols < this._elems.length && top == this._elems[this._cols].getPosition().y) this._cols++;
             
             //Initialization
             this._elems.each(function(elem, index){
